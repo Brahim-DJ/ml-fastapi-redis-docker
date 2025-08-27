@@ -1,0 +1,33 @@
+services:
+  webserver:
+    build: ./webserver
+    container_name: fastapi_server
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis
+      - IMAGE_QUEUE=image_queue
+      - RESULT_TTL=300
+    depends_on:
+      - redis
+
+  worker:
+    build: ./modelserver
+    container_name: model_worker
+    environment:
+      - REDIS_HOST=redis
+      - IMAGE_QUEUE=image_queue
+      - BATCH_SIZE=32
+      - SERVER_SLEEP=0.25
+      - IMAGE_WIDTH=224
+      - IMAGE_HEIGHT=224
+      - IMAGE_CHANS=3
+      - RESULT_TTL=300
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:6.2
+    container_name: redis_queue
+    ports:
+      - "6379:6379"
